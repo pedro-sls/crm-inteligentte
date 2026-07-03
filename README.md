@@ -7,7 +7,7 @@ CRM customizavel para gestao de clientes, demandas de clientes, demandas interna
 Branch atual de trabalho:
 
 ```bash
-feature/sprint-2-customer-management
+feature/sprint-3-client-demands
 ```
 
 ## Documentacao Inicial
@@ -89,9 +89,9 @@ secrets existirem no GitHub:
 
 ## Proximo Marco
 
-Executar a Sprint 2:
+Executar a Sprint 3:
 
-- Criar listagem de clientes por organizacao.
-- Criar cadastro e edicao de clientes.
-- Adicionar filtros iniciais por busca e status.
-- Garantir isolamento multi-organizacao nas consultas e mutacoes.
+- Criar demandas vinculadas a clientes.
+- Exibir demandas na listagem geral e no detalhe do cliente.
+- Permitir alterar status e prioridade.
+- Registrar eventos relevantes na auditoria.

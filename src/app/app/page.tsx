@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { ClipboardList, Plug, ShieldCheck, UsersRound } from "lucide-react";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getDb } from "@/db/client";
-import { customers } from "@/db/schema";
+import { customers, demands } from "@/db/schema";
 import { requireOrganizationContext } from "@/lib/organization-context";
 
 const modules = [
@@ -18,8 +18,8 @@ const modules = [
   },
   {
     title: "Demandas",
-    status: "Sprint 3",
-    href: "/app",
+    status: "Ativo",
+    href: "/app/demands",
     icon: ClipboardList,
   },
   {
@@ -36,6 +36,10 @@ export default async function AppPage() {
     .select({ total: count() })
     .from(customers)
     .where(eq(customers.organizationId, organization.id));
+  const [demandStats] = await getDb()
+    .select({ total: count() })
+    .from(demands)
+    .where(and(eq(demands.organizationId, organization.id), eq(demands.type, "client")));
 
   return (
     <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
@@ -65,21 +69,21 @@ export default async function AppPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Checklist da Sprint 2</CardTitle>
+            <CardTitle className="text-base">Checklist da Sprint 3</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center justify-between gap-3">
-              <span>Clientes por organizacao</span>
+              <span>Demanda vinculada ao cliente</span>
               <Badge>Ativo</Badge>
             </div>
             <Separator />
             <div className="flex items-center justify-between gap-3">
-              <span>Cadastro e edicao</span>
+              <span>Status e prioridade editaveis</span>
               <Badge>Ativo</Badge>
             </div>
             <Separator />
             <div className="flex items-center justify-between gap-3">
-              <span>Filtros iniciais</span>
+              <span>Registro de auditoria</span>
               <Badge>Ativo</Badge>
             </div>
           </CardContent>
@@ -99,6 +103,21 @@ export default async function AppPage() {
           <CardContent className="space-y-3">
             <p className="font-mono text-3xl font-semibold">{customerStats?.total ?? 0}</p>
             <p className="text-sm text-muted-foreground">Registros vinculados a esta organizacao.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
+                <ClipboardList className="size-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Demandas</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="font-mono text-3xl font-semibold">{demandStats?.total ?? 0}</p>
+            <p className="text-sm text-muted-foreground">Solicitacoes de clientes nesta organizacao.</p>
           </CardContent>
         </Card>
 

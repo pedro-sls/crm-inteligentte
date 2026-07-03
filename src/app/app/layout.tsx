@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, LayoutDashboard, UsersRound } from "lucide-react";
+import { Building2, ClipboardList, LayoutDashboard, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -16,6 +16,11 @@ const navItems = [
     label: "Clientes",
     icon: UsersRound,
   },
+  {
+    href: "/app/demands",
+    label: "Demandas",
+    icon: ClipboardList,
+  },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl font-semibold tracking-normal">CRM INTELIGENTTE</h1>
-                <Badge variant="secondary">Sprint 2</Badge>
+                <Badge variant="secondary">Sprint 3</Badge>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <Building2 className="size-4" />
