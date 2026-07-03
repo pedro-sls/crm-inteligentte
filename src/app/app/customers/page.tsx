@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Edit, Plus, Search, UsersRound } from "lucide-react";
+import { Eye, Plus, Search, UsersRound } from "lucide-react";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -180,9 +180,9 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                     <TableCell>{customer.phone || "Sem telefone"}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/app/customers/${customer.id}/edit`}>
-                          <Edit className="size-4" />
-                          Editar
+                        <Link href={`/app/customers/${customer.id}`}>
+                          <Eye className="size-4" />
+                          Abrir
                         </Link>
                       </Button>
                     </TableCell>
