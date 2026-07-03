@@ -17,6 +17,19 @@ export const metadata: Metadata = {
   description: "CRM para clientes, demandas, automacoes e operacao interna.",
 };
 
+const themeScript = `
+(() => {
+  try {
+    const storedTheme = localStorage.getItem("crm-inteligentte-theme") || "system";
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const shouldUseDark = storedTheme === "dark" || (storedTheme === "system" && prefersDark);
+    document.documentElement.classList.toggle("dark", shouldUseDark);
+  } catch {
+    document.documentElement.classList.remove("dark");
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,8 +38,12 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

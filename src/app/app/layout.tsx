@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { Building2, ClipboardList, LayoutDashboard, UsersRound } from "lucide-react";
+import {
+  Building2,
+  ClipboardList,
+  LayoutDashboard,
+  ListChecks,
+  UsersRound,
+} from "lucide-react";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -18,8 +25,18 @@ const navItems = [
   },
   {
     href: "/app/demands",
-    label: "Demandas",
+    label: "Demandas clientes",
     icon: ClipboardList,
+  },
+  {
+    href: "/app/internal-demands",
+    label: "Demandas internas",
+    icon: ListChecks,
+  },
+  {
+    href: "/app/teams",
+    label: "Equipes",
+    icon: UsersRound,
   },
 ];
 
@@ -34,7 +51,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl font-semibold tracking-normal">CRM INTELIGENTTE</h1>
-                <Badge variant="secondary">Sprint 3</Badge>
+                <Badge variant="secondary">Sprint 4</Badge>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <Building2 className="size-4" />
@@ -43,7 +60,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 <span>{session.user.email}</span>
               </div>
             </div>
-            <SignOutButton />
+            <div className="flex flex-wrap gap-2">
+              <ThemeToggle />
+              <SignOutButton />
+            </div>
           </div>
 
           <nav className="flex flex-wrap gap-2">
