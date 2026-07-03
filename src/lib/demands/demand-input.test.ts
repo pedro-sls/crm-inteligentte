@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseClientDemandFormData,
   parseDemandStatusUpdateFormData,
+  parseInternalDemandFormData,
 } from "@/lib/demands/demand-input";
 
 const customerId = "11111111-1111-4111-8111-111111111111";
@@ -66,5 +67,45 @@ describe("US-0302 - Alterar status e prioridade da demanda", () => {
     });
 
     expect(() => parseDemandStatusUpdateFormData(formData)).toThrow();
+  });
+});
+
+describe("US-0401 - Criar demanda interna", () => {
+  it("Cenario: demanda interna nao exige cliente vinculado", () => {
+    const values = parseInternalDemandFormData(
+      createFormData({
+        title: "Revisar processo financeiro",
+        description: "Organizar pendencias internas",
+        priority: "medium",
+        dueAt: "",
+        area: "Financeiro",
+        project: "Rotina operacional",
+        teamId: "",
+      }),
+    );
+
+    expect(values).toEqual({
+      title: "Revisar processo financeiro",
+      description: "Organizar pendencias internas",
+      priority: "medium",
+      dueAt: null,
+      area: "Financeiro",
+      project: "Rotina operacional",
+      teamId: null,
+    });
+  });
+
+  it("Cenario: demanda interna pode ser vinculada a uma equipe", () => {
+    const teamId = "8d3af5af-a784-4df1-a5a5-d6d94614ecb4";
+    const values = parseInternalDemandFormData(
+      createFormData({
+        title: "Preparar onboarding",
+        priority: "high",
+        teamId,
+      }),
+    );
+
+    expect(values.teamId).toBe(teamId);
+    expect(values.priority).toBe("high");
   });
 });

@@ -7,7 +7,7 @@ CRM customizavel para gestao de clientes, demandas de clientes, demandas interna
 Branch atual de trabalho:
 
 ```bash
-feature/sprint-3-client-demands
+feature/sprint-4-internal-demands-dark-mode
 ```
 
 ## Documentacao Inicial
@@ -89,9 +89,10 @@ secrets existirem no GitHub:
 
 ## Proximo Marco
 
-Executar a Sprint 3:
+Executar a Sprint 4:
 
-- Criar demandas vinculadas a clientes.
-- Exibir demandas na listagem geral e no detalhe do cliente.
-- Permitir alterar status e prioridade.
-- Registrar eventos relevantes na auditoria.
+- Criar demandas internas separadas das demandas de clientes.
+- Cadastrar equipes para organizar demandas internas.
+- Filtrar demandas internas por equipe, status e prioridade.
+- Exibir quadro por status para operacao interna.
+- Adicionar modo claro, escuro e sistema.

@@ -6,6 +6,8 @@ export const demandStatusLabels = {
   canceled: "Cancelada",
 } as const;
 
+export const demandStatusValues = ["open", "in_progress", "waiting", "done", "canceled"] as const;
+
 export const demandPriorityLabels = {
   low: "Baixa",
   medium: "Media",

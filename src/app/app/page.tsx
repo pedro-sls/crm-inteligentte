@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ClipboardList, Plug, ShieldCheck, UsersRound } from "lucide-react";
+import { ClipboardList, ListChecks, Plug, ShieldCheck, UsersRound } from "lucide-react";
 import { and, count, eq } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,14 +17,26 @@ const modules = [
     icon: UsersRound,
   },
   {
-    title: "Demandas",
+    title: "Demandas clientes",
     status: "Ativo",
     href: "/app/demands",
     icon: ClipboardList,
   },
   {
+    title: "Demandas internas",
+    status: "Ativo",
+    href: "/app/internal-demands",
+    icon: ListChecks,
+  },
+  {
+    title: "Equipes",
+    status: "Ativo",
+    href: "/app/teams",
+    icon: UsersRound,
+  },
+  {
     title: "Integracoes",
-    status: "Sprint 4",
+    status: "Sprint 6",
     href: "/app",
     icon: Plug,
   },
@@ -32,14 +44,20 @@ const modules = [
 
 export default async function AppPage() {
   const { organization } = await requireOrganizationContext();
-  const [customerStats] = await getDb()
-    .select({ total: count() })
-    .from(customers)
-    .where(eq(customers.organizationId, organization.id));
-  const [demandStats] = await getDb()
-    .select({ total: count() })
-    .from(demands)
-    .where(and(eq(demands.organizationId, organization.id), eq(demands.type, "client")));
+  const [[customerStats], [clientDemandStats], [internalDemandStats]] = await Promise.all([
+    getDb()
+      .select({ total: count() })
+      .from(customers)
+      .where(eq(customers.organizationId, organization.id)),
+    getDb()
+      .select({ total: count() })
+      .from(demands)
+      .where(and(eq(demands.organizationId, organization.id), eq(demands.type, "client"))),
+    getDb()
+      .select({ total: count() })
+      .from(demands)
+      .where(and(eq(demands.organizationId, organization.id), eq(demands.type, "internal"))),
+  ]);
 
   return (
     <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
@@ -51,7 +69,7 @@ export default async function AppPage() {
               Clientes, demandas e integracoes dentro da organizacao ativa.
             </p>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-3">
+          <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {modules.map((module) => (
               <div key={module.title} className="rounded-md border p-3">
                 <module.icon className="mb-3 size-4 text-primary" />
@@ -69,21 +87,21 @@ export default async function AppPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Checklist da Sprint 3</CardTitle>
+            <CardTitle className="text-base">Checklist da Sprint 4</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center justify-between gap-3">
-              <span>Demanda vinculada ao cliente</span>
+              <span>Demandas internas separadas de clientes</span>
               <Badge>Ativo</Badge>
             </div>
             <Separator />
             <div className="flex items-center justify-between gap-3">
-              <span>Status e prioridade editaveis</span>
+              <span>Equipes cadastraveis</span>
               <Badge>Ativo</Badge>
             </div>
             <Separator />
             <div className="flex items-center justify-between gap-3">
-              <span>Registro de auditoria</span>
+              <span>Modo claro, escuro e sistema</span>
               <Badge>Ativo</Badge>
             </div>
           </CardContent>
@@ -116,8 +134,23 @@ export default async function AppPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="font-mono text-3xl font-semibold">{demandStats?.total ?? 0}</p>
+            <p className="font-mono text-3xl font-semibold">{clientDemandStats?.total ?? 0}</p>
             <p className="text-sm text-muted-foreground">Solicitacoes de clientes nesta organizacao.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
+                <ListChecks className="size-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Internas</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="font-mono text-3xl font-semibold">{internalDemandStats?.total ?? 0}</p>
+            <p className="text-sm text-muted-foreground">Demandas internas nesta organizacao.</p>
           </CardContent>
         </Card>
 

@@ -21,6 +21,16 @@ export const clientDemandInputSchema = z.object({
   dueAt: optionalDateSchema,
 });
 
+export const internalDemandInputSchema = z.object({
+  title: z.string().trim().min(2).max(180),
+  description: z.string().trim().max(4000).optional(),
+  priority: z.enum(demandPriorityValues),
+  dueAt: optionalDateSchema,
+  area: z.string().trim().max(120).optional(),
+  project: z.string().trim().max(120).optional(),
+  teamId: z.string().uuid().optional().or(z.literal("")),
+});
+
 export const demandStatusUpdateSchema = z.object({
   status: z.enum(demandStatusValues),
   priority: z.enum(demandPriorityValues),
@@ -32,6 +42,16 @@ export type ClientDemandInput = {
   description: string | null;
   priority: DemandPriority;
   dueAt: Date | null;
+};
+
+export type InternalDemandInput = {
+  title: string;
+  description: string | null;
+  priority: DemandPriority;
+  dueAt: Date | null;
+  area: string | null;
+  project: string | null;
+  teamId: string | null;
 };
 
 export type DemandStatusUpdateInput = {
@@ -63,6 +83,28 @@ export function parseClientDemandFormData(formData: FormData): ClientDemandInput
     description: optionalValue(parsed.description),
     priority: parsed.priority,
     dueAt: parsed.dueAt,
+  };
+}
+
+export function parseInternalDemandFormData(formData: FormData): InternalDemandInput {
+  const parsed = internalDemandInputSchema.parse({
+    title: formString(formData, "title"),
+    description: formString(formData, "description"),
+    priority: formString(formData, "priority"),
+    dueAt: formString(formData, "dueAt"),
+    area: formString(formData, "area"),
+    project: formString(formData, "project"),
+    teamId: formString(formData, "teamId"),
+  });
+
+  return {
+    title: parsed.title,
+    description: optionalValue(parsed.description),
+    priority: parsed.priority,
+    dueAt: parsed.dueAt,
+    area: optionalValue(parsed.area),
+    project: optionalValue(parsed.project),
+    teamId: optionalValue(parsed.teamId),
   };
 }
 
