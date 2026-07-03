@@ -10,7 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const memberRole = pgEnum("member_role", ["admin", "manager", "member"]);
+export const memberRole = pgEnum("member_role", ["owner", "admin", "manager", "member"]);
 export const customerStatus = pgEnum("customer_status", [
   "prospect",
   "active",
@@ -49,6 +49,8 @@ export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull(),
+  logo: text("logo"),
+  metadata: text("metadata"),
   ...timestamps,
 }, (table) => [
   uniqueIndex("organizations_slug_idx").on(table.slug),
@@ -63,6 +65,56 @@ export const users = pgTable("users", {
   ...timestamps,
 }, (table) => [
   uniqueIndex("users_email_idx").on(table.email),
+]);
+
+export const sessions = pgTable("sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  token: text("token").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  activeOrganizationId: uuid("active_organization_id").references(() => organizations.id, {
+    onDelete: "set null",
+  }),
+  activeTeamId: uuid("active_team_id").references(() => teams.id, { onDelete: "set null" }),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex("sessions_token_idx").on(table.token),
+  index("sessions_user_idx").on(table.userId),
+  index("sessions_active_organization_idx").on(table.activeOrganizationId),
+]);
+
+export const accounts = pgTable("accounts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+  scope: text("scope"),
+  password: text("password"),
+  ...timestamps,
+}, (table) => [
+  index("accounts_user_idx").on(table.userId),
+  uniqueIndex("accounts_provider_account_idx").on(table.providerId, table.accountId),
+]);
+
+export const verifications = pgTable("verifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  ...timestamps,
+}, (table) => [
+  index("verifications_identifier_idx").on(table.identifier),
 ]);
 
 export const organizationMembers = pgTable("organization_members", {
@@ -90,6 +142,39 @@ export const teams = pgTable("teams", {
   ...timestamps,
 }, (table) => [
   index("teams_organization_idx").on(table.organizationId),
+]);
+
+export const teamMembers = pgTable("team_members", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  teamId: uuid("team_id")
+    .references(() => teams.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("team_members_team_user_idx").on(table.teamId, table.userId),
+  index("team_members_user_idx").on(table.userId),
+]);
+
+export const invitations = pgTable("invitations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  inviterId: uuid("inviter_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }),
+  email: text("email").notNull(),
+  role: memberRole("role").default("member").notNull(),
+  status: text("status").default("pending").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("invitations_organization_idx").on(table.organizationId),
+  index("invitations_email_idx").on(table.email),
 ]);
 
 export const customers = pgTable("customers", {

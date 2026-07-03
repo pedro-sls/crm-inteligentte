@@ -8,6 +8,13 @@
       "when": 1782916930761,
       "tag": "0000_busy_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783083825549,
+      "tag": "0001_new_ulik",
+      "breakpoints": true
     }
   ]
 }
