@@ -28,25 +28,12 @@ import {
 } from "@/components/ui/table";
 import { getDb } from "@/db/client";
 import { customers } from "@/db/schema";
+import {
+  customerStatusLabels,
+  customerStatusOptions,
+  getCustomerStatusFilter,
+} from "@/lib/customers/customer-status";
 import { requireOrganizationContext } from "@/lib/organization-context";
-
-const statusLabels = {
-  prospect: "Prospect",
-  active: "Ativo",
-  at_risk: "Em risco",
-  inactive: "Inativo",
-} as const;
-
-type CustomerStatus = keyof typeof statusLabels;
-type StatusFilter = CustomerStatus | "all";
-
-const statusOptions = [
-  { value: "all", label: "Todos" },
-  { value: "prospect", label: "Prospect" },
-  { value: "active", label: "Ativo" },
-  { value: "at_risk", label: "Em risco" },
-  { value: "inactive", label: "Inativo" },
-] as const;
 
 type CustomersPageProps = {
   searchParams: Promise<{
@@ -55,15 +42,11 @@ type CustomersPageProps = {
   }>;
 };
 
-function getStatus(value?: string): StatusFilter {
-  return statusOptions.some((option) => option.value === value) ? (value as StatusFilter) : "all";
-}
-
 export default async function CustomersPage({ searchParams }: CustomersPageProps) {
   const { organization } = await requireOrganizationContext();
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
-  const status = getStatus(params.status);
+  const status = getCustomerStatusFilter(params.status);
   const conditions = [eq(customers.organizationId, organization.id)];
 
   if (query) {
@@ -157,7 +140,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {statusOptions.map((option) => (
+                {customerStatusOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -190,7 +173,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                     </TableCell>
                     <TableCell>
                       <Badge variant={customer.status === "active" ? "default" : "outline"}>
-                        {statusLabels[customer.status]}
+                        {customerStatusLabels[customer.status]}
                       </Badge>
                     </TableCell>
                     <TableCell>{customer.email || "Sem email"}</TableCell>

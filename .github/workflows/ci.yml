@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "feature/**"
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "postgresql://USER:PASSWORD@HOST.neon.tech/DB?sslmode=require"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      AUTH_SECRET: "ci-auth-secret-with-more-than-32-characters"
+      WEBHOOK_SIGNING_SECRET: "ci-webhook-secret-with-more-than-32-chars"
+      API_KEY_PEPPER: "ci-api-key-pepper-with-more-than-32-chars"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check secrets
+        run: npm run security:secrets
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit dependencies
+        run: npm run security:audit

@@ -62,6 +62,31 @@ npm run typecheck
 
 Nunca suba `.env`, tokens, URL real do Neon, chaves de API ou dados reais de clientes.
 
+## Qualidade, CI e CD
+
+Os testes unitarios ficam alinhados aos BDDs do planejamento sempre que uma
+regra de negocio for implementada.
+
+```bash
+npm run test:unit
+```
+
+O CI roda em pull requests e branches de feature:
+
+- `npm run security:secrets`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test:ci`
+- `npm run build`
+- `npm run security:audit`
+
+O CD esta preparado para Vercel em `main`, mas so executa deploy quando estes
+secrets existirem no GitHub:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
 ## Proximo Marco
 
 Executar a Sprint 2:
