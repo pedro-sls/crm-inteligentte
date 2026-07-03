@@ -7,7 +7,7 @@ CRM customizavel para gestao de clientes, demandas de clientes, demandas interna
 Branch atual de trabalho:
 
 ```bash
-feature/sprint-0-project-foundation
+feature/sprint-1-auth-organizations
 ```
 
 ## Documentacao Inicial
@@ -30,14 +30,21 @@ feature/sprint-0-project-foundation
 1. Copie `.env.example` para `.env`.
 2. Crie um banco no Neon.
 3. Cole a string de conexao do Neon em `DATABASE_URL`.
-4. Instale dependencias com `npm install`.
-5. Rode o app localmente:
+4. Gere segredos fortes para `AUTH_SECRET`, `WEBHOOK_SIGNING_SECRET` e `API_KEY_PEPPER`.
+5. Instale dependencias com `npm install`.
+6. Aplique as migrations no Neon:
+
+```bash
+npm run db:migrate
+```
+
+7. Rode o app localmente:
 
 ```bash
 npm run dev
 ```
 
-6. Gere novamente o PDF, se alterar a documentacao, com:
+8. Gere novamente o PDF, se alterar a documentacao, com:
 
 ```bash
 npm run docs:pdf
@@ -57,10 +64,9 @@ Nunca suba `.env`, tokens, URL real do Neon, chaves de API ou dados reais de cli
 
 ## Proximo Marco
 
-Executar a Sprint 0:
+Executar a Sprint 1:
 
-- Inicializar a aplicacao Next.js.
-- Configurar Tailwind CSS e shadcn/ui.
-- Configurar Drizzle ORM com Neon.
-- Criar primeira migration.
-- Preparar autenticacao com Better Auth.
+- Configurar Better Auth com Drizzle e Neon.
+- Criar login e cadastro com organizacao inicial.
+- Proteger a area interna do CRM.
+- Preparar a base para membros, convites e times.

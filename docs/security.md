@@ -25,3 +25,6 @@ Este repositorio e publico. Nenhum dado real da empresa, segredo, token, chave d
 - `WEBHOOK_SIGNING_SECRET`: segredo para assinar payloads de webhooks.
 - `API_KEY_PEPPER`: segredo usado para proteger chaves de API.
 
+Gere segredos localmente e nunca cole os valores reais em commits, issues,
+prints ou documentacao publica. Um formato seguro e usar pelo menos 32 bytes
+aleatorios codificados em hexadecimal.
