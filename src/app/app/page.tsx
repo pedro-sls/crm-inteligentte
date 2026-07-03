@@ -1,103 +1,106 @@
-import {
-  Building2,
-  ClipboardList,
-  Plug,
-  ShieldCheck,
-  UsersRound,
-} from "lucide-react";
+import Link from "next/link";
+import { ClipboardList, Plug, ShieldCheck, UsersRound } from "lucide-react";
+import { count, eq } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { SignOutButton } from "@/components/auth/sign-out-button";
-import { requireSession } from "@/lib/session";
+import { getDb } from "@/db/client";
+import { customers } from "@/db/schema";
+import { requireOrganizationContext } from "@/lib/organization-context";
 
 const modules = [
   {
     title: "Clientes",
-    status: "Sprint 2",
+    status: "Ativo",
+    href: "/app/customers",
     icon: UsersRound,
   },
   {
     title: "Demandas",
     status: "Sprint 3",
+    href: "/app",
     icon: ClipboardList,
   },
   {
     title: "Integracoes",
     status: "Sprint 4",
+    href: "/app",
     icon: Plug,
   },
 ];
 
 export default async function AppPage() {
-  const session = await requireSession();
+  const { organization } = await requireOrganizationContext();
+  const [customerStats] = await getDb()
+    .select({ total: count() })
+    .from(customers)
+    .where(eq(customers.organizationId, organization.id));
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-semibold tracking-normal">CRM INTELIGENTTE</h1>
-              <Badge variant="secondary">Sprint 1</Badge>
+    <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Operacao</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Clientes, demandas e integracoes dentro da organizacao ativa.
+            </p>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-3">
+            {modules.map((module) => (
+              <div key={module.title} className="rounded-md border p-3">
+                <module.icon className="mb-3 size-4 text-primary" />
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium">{module.title}</span>
+                  <Badge variant="outline">{module.status}</Badge>
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={module.href}>Abrir</Link>
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Checklist da Sprint 2</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <span>Clientes por organizacao</span>
+              <Badge>Ativo</Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{session.user.email}</p>
-          </div>
-          <SignOutButton />
-        </div>
-      </header>
+            <Separator />
+            <div className="flex items-center justify-between gap-3">
+              <span>Cadastro e edicao</span>
+              <Badge>Ativo</Badge>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between gap-3">
+              <span>Filtros iniciais</span>
+              <Badge>Ativo</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      <section className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1.3fr_0.7fr] lg:px-8">
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
-                  <Building2 className="size-4 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-base">Operacao</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Autenticacao, sessao e organizacoes conectadas ao Neon.
-                  </p>
-                </div>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
+                <UsersRound className="size-4 text-primary" />
               </div>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-3">
-              {modules.map((module) => (
-                <div key={module.title} className="rounded-md border p-3">
-                  <module.icon className="mb-3 size-4 text-primary" />
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-medium">{module.title}</span>
-                    <Badge variant="outline">{module.status}</Badge>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Checklist da Sprint 1</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span>Login e cadastro</span>
-                <Badge>Ativo</Badge>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between gap-3">
-                <span>Organizacao inicial</span>
-                <Badge>Ativo</Badge>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between gap-3">
-                <span>Rotas protegidas</span>
-                <Badge>Ativo</Badge>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <CardTitle className="text-base">Clientes</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="font-mono text-3xl font-semibold">{customerStats?.total ?? 0}</p>
+            <p className="text-sm text-muted-foreground">Registros vinculados a esta organizacao.</p>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -109,11 +112,11 @@ export default async function AppPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Segredos seguem fora do Git e carregados apenas por variaveis de ambiente.</p>
-            <p>Sessoes usam cookies do Better Auth e validacao server-side nas rotas internas.</p>
+            <p>Consultas e mutacoes usam a organizacao resolvida no servidor.</p>
+            <p>Nenhum formulario aceita `organization_id` vindo do cliente.</p>
           </CardContent>
         </Card>
-      </section>
-    </main>
+      </div>
+    </section>
   );
 }

@@ -7,7 +7,7 @@ CRM customizavel para gestao de clientes, demandas de clientes, demandas interna
 Branch atual de trabalho:
 
 ```bash
-feature/sprint-1-auth-organizations
+feature/sprint-2-customer-management
 ```
 
 ## Documentacao Inicial
@@ -64,9 +64,9 @@ Nunca suba `.env`, tokens, URL real do Neon, chaves de API ou dados reais de cli
 
 ## Proximo Marco
 
-Executar a Sprint 1:
+Executar a Sprint 2:
 
-- Configurar Better Auth com Drizzle e Neon.
-- Criar login e cadastro com organizacao inicial.
-- Proteger a area interna do CRM.
-- Preparar a base para membros, convites e times.
+- Criar listagem de clientes por organizacao.
+- Criar cadastro e edicao de clientes.
+- Adicionar filtros iniciais por busca e status.
+- Garantir isolamento multi-organizacao nas consultas e mutacoes.
