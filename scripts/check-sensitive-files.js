@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 
 const root = path.resolve(__dirname, "..");
 const ignoredDirs = new Set([
@@ -26,6 +27,18 @@ const secretPatterns = [
 
 const findings = [];
 
+function isGitIgnored(relativePath) {
+  try {
+    execFileSync("git", ["check-ignore", "-q", relativePath], {
+      cwd: root,
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function walk(currentPath) {
   const entries = fs.readdirSync(currentPath, { withFileTypes: true });
 
@@ -37,6 +50,10 @@ function walk(currentPath) {
       if (!ignoredDirs.has(entry.name)) {
         walk(absolutePath);
       }
+      continue;
+    }
+
+    if (isGitIgnored(relativePath)) {
       continue;
     }
 
