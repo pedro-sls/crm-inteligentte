@@ -27,7 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getDb } from "@/db/client";
-import { customers, demands } from "@/db/schema";
+import { customers, demands, users } from "@/db/schema";
 import {
   demandPriorityLabels,
   demandPriorityOptions,
@@ -86,9 +86,12 @@ export default async function DemandsPage({ searchParams }: DemandsPageProps) {
         dueAt: demands.dueAt,
         updatedAt: demands.updatedAt,
         customerName: customers.name,
+        assigneeName: users.name,
+        assigneeEmail: users.email,
       })
       .from(demands)
       .innerJoin(customers, eq(customers.id, demands.customerId))
+      .leftJoin(users, eq(users.id, demands.assigneeId))
       .where(and(...conditions))
       .orderBy(desc(demands.updatedAt))
       .limit(100),
@@ -193,6 +196,7 @@ export default async function DemandsPage({ searchParams }: DemandsPageProps) {
                 <TableRow>
                   <TableHead>Titulo</TableHead>
                   <TableHead>Cliente</TableHead>
+                  <TableHead>Responsavel</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Prioridade</TableHead>
                   <TableHead>Prazo</TableHead>
@@ -204,6 +208,7 @@ export default async function DemandsPage({ searchParams }: DemandsPageProps) {
                   <TableRow key={demand.id}>
                     <TableCell className="font-medium">{demand.title}</TableCell>
                     <TableCell>{demand.customerName}</TableCell>
+                    <TableCell>{demand.assigneeName || demand.assigneeEmail || "Sem responsavel"}</TableCell>
                     <TableCell>
                       <Badge variant={demand.status === "done" ? "default" : "outline"}>
                         {demandStatusLabels[demand.status]}

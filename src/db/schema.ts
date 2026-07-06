@@ -239,6 +239,26 @@ export const demands = pgTable("demands", {
   index("demands_status_idx").on(table.status),
 ]);
 
+export const distributionRules = pgTable("distribution_rules", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  conditionDemandType: demandType("condition_demand_type"),
+  conditionPriority: demandPriority("condition_priority"),
+  conditionTeamId: uuid("condition_team_id").references(() => teams.id, { onDelete: "set null" }),
+  conditionCustomerStatus: customerStatus("condition_customer_status"),
+  actionTeamId: uuid("action_team_id").references(() => teams.id, { onDelete: "set null" }),
+  actionAssigneeId: uuid("action_assignee_id").references(() => users.id, { onDelete: "set null" }),
+  actionPriority: demandPriority("action_priority"),
+  ...timestamps,
+}, (table) => [
+  index("distribution_rules_organization_idx").on(table.organizationId),
+  index("distribution_rules_active_idx").on(table.isActive),
+]);
+
 export const webhooks = pgTable("webhooks", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id")

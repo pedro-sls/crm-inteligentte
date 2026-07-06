@@ -10,6 +10,7 @@ import {
   parseDemandStatusUpdateFormData,
   parseInternalDemandFormData,
 } from "@/lib/demands/demand-input";
+import { applyDistributionRulesToDemand } from "@/lib/distribution/distribution-engine";
 import { requireOrganizationContext } from "@/lib/organization-context";
 
 async function ensureTeamBelongsToOrganization(teamId: string, organizationId: string) {
@@ -63,6 +64,16 @@ export async function createInternalDemandAction(formData: FormData) {
         priority: values.priority,
         status: "open",
       },
+    });
+
+    await applyDistributionRulesToDemand({
+      organizationId: organization.id,
+      actorId: session.user.id,
+      demandId: demand.id,
+      demandType: "internal",
+      priority: values.priority,
+      teamId: values.teamId,
+      customerId: null,
     });
   }
 

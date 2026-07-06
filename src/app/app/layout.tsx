@@ -4,6 +4,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   ListChecks,
+  Route,
   UsersRound,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -38,6 +39,11 @@ const navItems = [
     label: "Equipes",
     icon: UsersRound,
   },
+  {
+    href: "/app/distribution-rules",
+    label: "Distribuicao",
+    icon: Route,
+  },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -51,7 +57,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl font-semibold tracking-normal">CRM INTELIGENTTE</h1>
-                <Badge variant="secondary">Sprint 4</Badge>
+                <Badge variant="secondary">Sprint 5</Badge>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <Building2 className="size-4" />
