@@ -20,9 +20,16 @@ type DemandStatusFormProps = {
   id: string;
   status: DemandStatus;
   priority: DemandPriority;
+  statusOptions?: Array<{ value: string; label: string }>;
 };
 
-export function DemandStatusForm({ action, id, status, priority }: DemandStatusFormProps) {
+export function DemandStatusForm({
+  action,
+  id,
+  status,
+  priority,
+  statusOptions = demandStatusOptions.filter((option) => option.value !== "all"),
+}: DemandStatusFormProps) {
   return (
     <form action={action} className="grid gap-4">
       <input type="hidden" name="id" value={id} />
@@ -35,13 +42,11 @@ export function DemandStatusForm({ action, id, status, priority }: DemandStatusF
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {demandStatusOptions
-                .filter((option) => option.value !== "all")
-                .map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
+              {statusOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

@@ -15,7 +15,7 @@ export const demandPriorityLabels = {
   urgent: "Urgente",
 } as const;
 
-export type DemandStatus = keyof typeof demandStatusLabels;
+export type DemandStatus = string;
 export type DemandPriority = keyof typeof demandPriorityLabels;
 export type DemandStatusFilter = DemandStatus | "all";
 export type DemandPriorityFilter = DemandPriority | "all";
@@ -38,13 +38,15 @@ export const demandPriorityOptions = [
 ] as const;
 
 export function getDemandStatusFilter(value?: string): DemandStatusFilter {
-  return demandStatusOptions.some((option) => option.value === value)
-    ? (value as DemandStatusFilter)
-    : "all";
+  return value && value !== "all" ? value : "all";
 }
 
 export function getDemandPriorityFilter(value?: string): DemandPriorityFilter {
   return demandPriorityOptions.some((option) => option.value === value)
     ? (value as DemandPriorityFilter)
     : "all";
+}
+
+export function getDemandStatusLabel(status: string, customLabels: Record<string, string> = {}) {
+  return customLabels[status] ?? demandStatusLabels[status as keyof typeof demandStatusLabels] ?? status;
 }

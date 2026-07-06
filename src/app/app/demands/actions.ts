@@ -10,8 +10,10 @@ import {
   parseClientDemandFormData,
   parseDemandStatusUpdateFormData,
 } from "@/lib/demands/demand-input";
+import { getInitialDemandStatus } from "@/lib/demand-workflows";
 import { applyDistributionRulesToDemand } from "@/lib/distribution/distribution-engine";
 import { requireOrganizationContext } from "@/lib/organization-context";
+import { dispatchWebhooks } from "@/lib/webhook-dispatcher";
 
 async function ensureCustomerBelongsToOrganization(customerId: string, organizationId: string) {
   const [customer] = await getDb()
@@ -30,6 +32,7 @@ export async function createClientDemandAction(formData: FormData) {
   const values = parseClientDemandFormData(formData);
 
   await ensureCustomerBelongsToOrganization(values.customerId, organization.id);
+  const status = await getInitialDemandStatus(organization.id, "client");
 
   const [demand] = await getDb()
     .insert(demands)
@@ -40,6 +43,7 @@ export async function createClientDemandAction(formData: FormData) {
       type: "client",
       title: values.title,
       description: values.description,
+      status,
       priority: values.priority,
       dueAt: values.dueAt,
       customFields: {},
@@ -56,7 +60,7 @@ export async function createClientDemandAction(formData: FormData) {
       metadata: {
         customerId: values.customerId,
         priority: values.priority,
-        status: "open",
+        status,
       },
     });
 
@@ -68,6 +72,18 @@ export async function createClientDemandAction(formData: FormData) {
       priority: values.priority,
       teamId: null,
       customerId: values.customerId,
+    });
+
+    await dispatchWebhooks({
+      organizationId: organization.id,
+      event: "demand.created",
+      entityId: demand.id,
+      data: {
+        id: demand.id,
+        customerId: values.customerId,
+        priority: values.priority,
+        status,
+      },
     });
   }
 
@@ -123,6 +139,19 @@ export async function updateClientDemandStatusAction(formData: FormData) {
       entityId: id,
       action: statusChanged ? "demand.status_changed" : "demand.updated",
       metadata: {
+        previousStatus: existing.status,
+        nextStatus: values.status,
+        previousPriority: existing.priority,
+        nextPriority: values.priority,
+      },
+    });
+
+    await dispatchWebhooks({
+      organizationId: organization.id,
+      event: statusChanged ? "demand.status_changed" : "demand.updated",
+      entityId: id,
+      data: {
+        id,
         previousStatus: existing.status,
         nextStatus: values.status,
         previousPriority: existing.priority,

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getDb } from "@/db/client";
-import { customers, demands } from "@/db/schema";
+import { customFieldDefinitions, customers, demands } from "@/db/schema";
 import { customerStatusLabels } from "@/lib/customers/customer-status";
-import {
-  demandPriorityLabels,
-  demandStatusLabels,
-} from "@/lib/demands/demand-status";
+import { demandPriorityLabels, getDemandStatusLabel } from "@/lib/demands/demand-status";
 import { requireOrganizationContext } from "@/lib/organization-context";
 
 type CustomerDetailPageProps = {
@@ -68,6 +65,23 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
     .orderBy(desc(demands.updatedAt))
     .limit(20);
 
+  const customFields = await getDb()
+    .select()
+    .from(customFieldDefinitions)
+    .where(
+      and(
+        eq(customFieldDefinitions.organizationId, organization.id),
+        eq(customFieldDefinitions.entityType, "customer"),
+        eq(customFieldDefinitions.isActive, true),
+      ),
+    )
+    .orderBy(asc(customFieldDefinitions.position), asc(customFieldDefinitions.label));
+
+  const customerCustomFields =
+    customer.customFields && typeof customer.customFields === "object"
+      ? (customer.customFields as Record<string, unknown>)
+      : {};
+
   return (
     <section className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -110,6 +124,12 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
               <p className="text-xs font-medium uppercase text-muted-foreground">Notas</p>
               <p className="leading-6 text-muted-foreground">{getNotes(customer.customFields) || "Sem notas"}</p>
             </div>
+            {customFields.map((field) => (
+              <div key={field.id}>
+                <p className="text-xs font-medium uppercase text-muted-foreground">{field.label}</p>
+                <p>{String(customerCustomFields[field.key] ?? "Nao informado")}</p>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -132,7 +152,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                   {demandRows.map((demand) => (
                     <TableRow key={demand.id}>
                       <TableCell className="font-medium">{demand.title}</TableCell>
-                      <TableCell>{demandStatusLabels[demand.status]}</TableCell>
+                      <TableCell>{getDemandStatusLabel(demand.status)}</TableCell>
                       <TableCell>{demandPriorityLabels[demand.priority]}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" asChild>

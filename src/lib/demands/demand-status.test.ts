@@ -7,9 +7,9 @@ describe("US-0302 - Filtros de demandas", () => {
     expect(getDemandPriorityFilter("urgent")).toBe("urgent");
   });
 
-  it("Cenario: filtros ausentes ou invalidos voltam para todos", () => {
+  it("Cenario: filtro ausente volta para todos e status customizado e preservado", () => {
     expect(getDemandStatusFilter()).toBe("all");
-    expect(getDemandStatusFilter("travada")).toBe("all");
+    expect(getDemandStatusFilter("em_revisao")).toBe("em_revisao");
     expect(getDemandPriorityFilter()).toBe("all");
     expect(getDemandPriorityFilter("maxima")).toBe("all");
   });

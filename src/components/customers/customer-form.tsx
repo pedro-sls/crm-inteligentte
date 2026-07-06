@@ -21,6 +21,7 @@ export type CustomerFormValues = {
   website?: string | null;
   status?: "prospect" | "active" | "at_risk" | "inactive";
   notes?: string;
+  customFields?: Record<string, unknown>;
 };
 
 const statuses = [
@@ -33,9 +34,25 @@ const statuses = [
 type CustomerFormProps = {
   action: (formData: FormData) => Promise<void>;
   values?: CustomerFormValues;
+  customFields?: Array<{
+    key: string;
+    label: string;
+    fieldType: string;
+    isRequired: boolean;
+    options: unknown;
+  }>;
 };
 
-export function CustomerForm({ action, values }: CustomerFormProps) {
+function getFieldValue(values: CustomerFormValues | undefined, key: string) {
+  const value = values?.customFields?.[key];
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function getFieldOptions(options: unknown) {
+  return Array.isArray(options) ? options.filter((option) => typeof option === "string") : [];
+}
+
+export function CustomerForm({ action, values, customFields = [] }: CustomerFormProps) {
   return (
     <form action={action} className="grid gap-4">
       {values?.id ? <input type="hidden" name="id" value={values.id} /> : null}
@@ -91,6 +108,62 @@ export function CustomerForm({ action, values }: CustomerFormProps) {
         <Label htmlFor="notes">Notas</Label>
         <Textarea id="notes" name="notes" defaultValue={values?.notes ?? ""} />
       </div>
+
+      {customFields.length > 0 ? (
+        <div className="grid gap-4 rounded-md border p-4 md:grid-cols-2">
+          {customFields.map((field) => {
+            const name = `custom_${field.key}`;
+
+            if (field.fieldType === "boolean") {
+              return (
+                <div key={field.key} className="flex items-center gap-2">
+                  <input
+                    id={name}
+                    name={name}
+                    type="checkbox"
+                    defaultChecked={getFieldValue(values, field.key) === "true"}
+                    className="size-4 rounded border"
+                  />
+                  <Label htmlFor={name}>{field.label}</Label>
+                </div>
+              );
+            }
+
+            if (field.fieldType === "select") {
+              return (
+                <div key={field.key} className="grid gap-2">
+                  <Label htmlFor={name}>{field.label}</Label>
+                  <Select name={name} defaultValue={getFieldValue(values, field.key)}>
+                    <SelectTrigger id={name} className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getFieldOptions(field.options).map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            }
+
+            return (
+              <div key={field.key} className="grid gap-2">
+                <Label htmlFor={name}>{field.label}</Label>
+                <Input
+                  id={name}
+                  name={name}
+                  type={field.fieldType === "number" ? "number" : field.fieldType === "date" ? "date" : "text"}
+                  defaultValue={getFieldValue(values, field.key)}
+                  required={field.isRequired}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button variant="outline" asChild>
