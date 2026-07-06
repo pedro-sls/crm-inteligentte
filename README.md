@@ -7,8 +7,22 @@ CRM customizavel para gestao de clientes, demandas de clientes, demandas interna
 Branch atual de trabalho:
 
 ```bash
-feature/sprint-5-demand-distribution
+develop
 ```
+
+## Fluxo Git
+
+Seguiremos Git Flow a partir da Sprint 6:
+
+- `main`: versao estavel pronta para producao.
+- `develop`: integracao das sprints e base para novas branches.
+- `feature/*`: novas funcionalidades e sprints.
+- `bugfix/*`: correcoes abertas a partir de `develop`.
+- `release/*`: estabilizacao antes de promover para `main`.
+- `hotfix/*`: correcao urgente aberta a partir de `main`.
+
+Pull requests de `feature/*` e `bugfix/*` devem mirar `develop`. Quando uma
+release estiver validada, `develop` sera promovida para `main`.
 
 ## Documentacao Inicial
 
@@ -89,10 +103,5 @@ secrets existirem no GitHub:
 
 ## Proximo Marco
 
-Executar a Sprint 5:
-
-- Atribuir demandas manualmente para responsaveis.
-- Validar responsaveis e equipes dentro da organizacao ativa.
-- Registrar historico de atribuicao.
-- Exibir demandas atribuidas ao usuario no painel.
-- Criar regras simples de distribuicao por tipo, prioridade, equipe e status do cliente.
+Executar a proxima sprint a partir de `develop`, mantendo testes unitarios,
+CI/CD e validacoes de seguranca antes de abrir PR.

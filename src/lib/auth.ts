@@ -4,12 +4,18 @@ import { nextCookies } from "better-auth/next-js";
 import { organization } from "better-auth/plugins";
 import { getDb } from "@/db/client";
 import * as schema from "@/db/schema";
+import { getAuthAllowedHosts, getAuthTrustedOrigins } from "@/lib/auth-url";
 
 function createAuth() {
   return betterAuth({
     appName: "CRM INTELIGENTTE",
     secret: process.env.AUTH_SECRET,
-    baseURL: process.env.NEXT_PUBLIC_APP_URL,
+    baseURL: {
+      allowedHosts: getAuthAllowedHosts(),
+      fallback: process.env.NEXT_PUBLIC_APP_URL,
+      protocol: process.env.NODE_ENV === "production" ? "https" : "auto",
+    },
+    trustedOrigins: getAuthTrustedOrigins(),
     database: drizzleAdapter(getDb(), {
       provider: "pg",
       schema,
