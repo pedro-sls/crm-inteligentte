@@ -1,11 +1,19 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { DemandAssignmentForm } from "@/components/demands/demand-assignment-form";
 import { DemandStatusForm } from "@/components/demands/demand-status-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { updateDemandAssignmentAction } from "@/app/app/demands/assignment-actions";
 import { updateInternalDemandStatusAction } from "@/app/app/internal-demands/actions";
 import { getDb } from "@/db/client";
-import { auditEvents, demands, teams } from "@/db/schema";
+import {
+  auditEvents,
+  demands,
+  organizationMembers,
+  teams,
+  users,
+} from "@/db/schema";
 import {
   demandPriorityLabels,
   demandStatusLabels,
@@ -39,7 +47,7 @@ function readInternalMetadata(value: unknown) {
 }
 
 export default async function InternalDemandDetailPage({ params }: InternalDemandDetailPageProps) {
-  const { organization } = await requireOrganizationContext();
+  const { session, organization } = await requireOrganizationContext();
   const { id } = await params;
   const [demand] = await getDb()
     .select({
@@ -50,11 +58,16 @@ export default async function InternalDemandDetailPage({ params }: InternalDeman
       priority: demands.priority,
       dueAt: demands.dueAt,
       customFields: demands.customFields,
+      teamId: demands.teamId,
       teamName: teams.name,
+      assigneeId: demands.assigneeId,
+      assigneeName: users.name,
+      assigneeEmail: users.email,
       updatedAt: demands.updatedAt,
     })
     .from(demands)
     .leftJoin(teams, eq(teams.id, demands.teamId))
+    .leftJoin(users, eq(users.id, demands.assigneeId))
     .where(
       and(
         eq(demands.id, id),
@@ -69,15 +82,37 @@ export default async function InternalDemandDetailPage({ params }: InternalDeman
   }
 
   const metadata = readInternalMetadata(demand.customFields);
-  const events = await getDb()
-    .select({
-      action: auditEvents.action,
-      createdAt: auditEvents.createdAt,
-    })
-    .from(auditEvents)
-    .where(and(eq(auditEvents.organizationId, organization.id), eq(auditEvents.entityId, demand.id)))
-    .orderBy(desc(auditEvents.createdAt))
-    .limit(10);
+  const [events, members, teamOptions] = await Promise.all([
+    getDb()
+      .select({
+        action: auditEvents.action,
+        createdAt: auditEvents.createdAt,
+      })
+      .from(auditEvents)
+      .where(
+        and(eq(auditEvents.organizationId, organization.id), eq(auditEvents.entityId, demand.id)),
+      )
+      .orderBy(desc(auditEvents.createdAt))
+      .limit(10),
+    getDb()
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      })
+      .from(organizationMembers)
+      .innerJoin(users, eq(users.id, organizationMembers.userId))
+      .where(eq(organizationMembers.organizationId, organization.id))
+      .orderBy(asc(users.name)),
+    getDb()
+      .select({
+        id: teams.id,
+        name: teams.name,
+      })
+      .from(teams)
+      .where(eq(teams.organizationId, organization.id))
+      .orderBy(asc(teams.name)),
+  ]);
 
   return (
     <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -90,6 +125,7 @@ export default async function InternalDemandDetailPage({ params }: InternalDeman
                 <Badge>{demandStatusLabels[demand.status]}</Badge>
                 <Badge variant="outline">{demandPriorityLabels[demand.priority]}</Badge>
                 <Badge variant="secondary">{formatDate(demand.dueAt)}</Badge>
+                {demand.assigneeId === session.user.id ? <Badge>Atribuida a voce</Badge> : null}
               </div>
             </div>
           </CardHeader>
@@ -97,6 +133,12 @@ export default async function InternalDemandDetailPage({ params }: InternalDeman
             <div>
               <p className="text-xs font-medium uppercase text-muted-foreground">Equipe</p>
               <p className="text-sm">{demand.teamName || "Sem equipe definida"}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase text-muted-foreground">Responsavel</p>
+              <p className="text-sm">
+                {demand.assigneeName || demand.assigneeEmail || "Sem responsavel"}
+              </p>
             </div>
             <div>
               <p className="text-xs font-medium uppercase text-muted-foreground">Area</p>
@@ -152,17 +194,38 @@ export default async function InternalDemandDetailPage({ params }: InternalDeman
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Status e prioridade</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DemandStatusForm
-            action={updateInternalDemandStatusAction}
-            id={demand.id}
-            status={demand.status}
-            priority={demand.priority}
-          />
-        </CardContent>
+        <div className="space-y-6">
+          <div>
+            <CardHeader>
+              <CardTitle className="text-base">Status e prioridade</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DemandStatusForm
+                action={updateInternalDemandStatusAction}
+                id={demand.id}
+                status={demand.status}
+                priority={demand.priority}
+              />
+            </CardContent>
+          </div>
+
+          <div>
+            <CardHeader>
+              <CardTitle className="text-base">Atribuicao</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DemandAssignmentForm
+                action={updateDemandAssignmentAction}
+                demandId={demand.id}
+                demandType="internal"
+                currentAssigneeId={demand.assigneeId}
+                currentTeamId={demand.teamId}
+                members={members}
+                teams={teamOptions}
+              />
+            </CardContent>
+          </div>
+        </div>
       </Card>
     </section>
   );

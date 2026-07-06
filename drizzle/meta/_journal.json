@@ -15,6 +15,13 @@
       "when": 1783083825549,
       "tag": "0001_new_ulik",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783338343705,
+      "tag": "0002_nice_joseph",
+      "breakpoints": true
     }
   ]
 }

@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getDb } from "@/db/client";
-import { demands, teams } from "@/db/schema";
+import { demands, teams, users } from "@/db/schema";
 import {
   demandPriorityLabels,
   demandPriorityOptions,
@@ -109,9 +109,12 @@ export default async function InternalDemandsPage({ searchParams }: InternalDema
         dueAt: demands.dueAt,
         customFields: demands.customFields,
         teamName: teams.name,
+        assigneeName: users.name,
+        assigneeEmail: users.email,
       })
       .from(demands)
       .leftJoin(teams, eq(teams.id, demands.teamId))
+      .leftJoin(users, eq(users.id, demands.assigneeId))
       .where(and(...conditions))
       .orderBy(desc(demands.updatedAt))
       .limit(100),
@@ -249,6 +252,7 @@ export default async function InternalDemandsPage({ searchParams }: InternalDema
                 <TableRow>
                   <TableHead>Titulo</TableHead>
                   <TableHead>Equipe</TableHead>
+                  <TableHead>Responsavel</TableHead>
                   <TableHead>Area</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Prioridade</TableHead>
@@ -264,6 +268,9 @@ export default async function InternalDemandsPage({ searchParams }: InternalDema
                     <TableRow key={demand.id}>
                       <TableCell className="font-medium">{demand.title}</TableCell>
                       <TableCell>{demand.teamName || "Sem equipe"}</TableCell>
+                      <TableCell>
+                        {demand.assigneeName || demand.assigneeEmail || "Sem responsavel"}
+                      </TableCell>
                       <TableCell>{metadata.area || "Sem area"}</TableCell>
                       <TableCell>
                         <Badge variant={demand.status === "done" ? "default" : "outline"}>
