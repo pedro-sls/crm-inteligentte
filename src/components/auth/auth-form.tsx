@@ -9,16 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authClient } from "@/lib/auth-client";
-
-function toSlug(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "")
-    .slice(0, 64);
-}
+import { toSlug } from "@/lib/slug";
 
 export function AuthForm() {
   const router = useRouter();
@@ -88,7 +79,9 @@ export function AuthForm() {
     setIsSubmitting(false);
 
     if (organizationResult.error) {
-      setError(organizationResult.error.message ?? "Conta criada, mas a organizacao falhou.");
+      setError("Conta criada. Finalize a organizacao para acessar o CRM.");
+      router.replace("/setup");
+      router.refresh();
       return;
     }
 

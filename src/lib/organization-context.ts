@@ -4,11 +4,8 @@ import { getDb } from "@/db/client";
 import { organizationMembers, organizations } from "@/db/schema";
 import { requireSession } from "@/lib/session";
 
-export async function requireOrganizationContext() {
-  const session = await requireSession();
+export async function getOrganizationMembership(userId: string, activeOrganizationId?: string | null) {
   const db = getDb();
-  const activeOrganizationId = session.session.activeOrganizationId;
-
   const baseQuery = db
     .select({
       organizationId: organizations.id,
@@ -23,17 +20,26 @@ export async function requireOrganizationContext() {
     ? await baseQuery
         .where(
           and(
-            eq(organizationMembers.userId, session.user.id),
+            eq(organizationMembers.userId, userId),
             eq(organizationMembers.organizationId, activeOrganizationId),
           ),
         )
         .limit(1)
-    : await baseQuery.where(eq(organizationMembers.userId, session.user.id)).limit(1);
+    : await baseQuery.where(eq(organizationMembers.userId, userId)).limit(1);
 
-  const membership = memberships[0];
+  return memberships[0] ?? null;
+}
+
+export async function requireOrganizationContext() {
+  const session = await requireSession();
+  const membership = await getOrganizationMembership(
+    session.user.id,
+    session.session.activeOrganizationId,
+  );
+
 
   if (!membership) {
-    redirect("/login");
+    redirect("/setup");
   }
 
   return {

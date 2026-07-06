@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { ClipboardList, ListChecks, Plug, Route, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
-import { and, count, eq } from "drizzle-orm";
+import { ClipboardList, KeyRound, ListChecks, Plug, Route, Settings, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
+import { and, count, eq, sql } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getDb } from "@/db/client";
-import { customers, demands, distributionRules } from "@/db/schema";
+import { apiKeys, customers, demands, distributionRules, webhookDeliveries, webhooks } from "@/db/schema";
 import { requireOrganizationContext } from "@/lib/organization-context";
 
 const modules = [
@@ -42,9 +42,15 @@ const modules = [
   },
   {
     title: "Integracoes",
-    status: "Sprint 6",
-    href: "/app",
+    status: "Ativo",
+    href: "/app/integrations",
     icon: Plug,
+  },
+  {
+    title: "Configuracoes",
+    status: "Ativo",
+    href: "/app/settings",
+    icon: Settings,
   },
 ];
 
@@ -56,6 +62,10 @@ export default async function AppPage() {
     [internalDemandStats],
     [assignedToMeStats],
     [distributionRuleStats],
+    [openDemandStats],
+    [webhookStats],
+    [apiKeyStats],
+    [failedDeliveryStats],
   ] = await Promise.all([
     getDb()
       .select({ total: count() })
@@ -77,6 +87,22 @@ export default async function AppPage() {
       .select({ total: count() })
       .from(distributionRules)
       .where(eq(distributionRules.organizationId, organization.id)),
+    getDb()
+      .select({ total: count() })
+      .from(demands)
+      .where(and(eq(demands.organizationId, organization.id), sql`${demands.status} != 'done'`)),
+    getDb()
+      .select({ total: count() })
+      .from(webhooks)
+      .where(and(eq(webhooks.organizationId, organization.id), eq(webhooks.isActive, true))),
+    getDb()
+      .select({ total: count() })
+      .from(apiKeys)
+      .where(and(eq(apiKeys.organizationId, organization.id), sql`${apiKeys.revokedAt} is null`)),
+    getDb()
+      .select({ total: count() })
+      .from(webhookDeliveries)
+      .where(and(eq(webhookDeliveries.organizationId, organization.id), eq(webhookDeliveries.status, "failed"))),
   ]);
 
   return (
@@ -107,21 +133,21 @@ export default async function AppPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Checklist da Sprint 5</CardTitle>
+            <CardTitle className="text-base">Sprint Final</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center justify-between gap-3">
-              <span>Atribuicao manual de responsavel</span>
+              <span>Webhooks e API para n8n/Make</span>
               <Badge>Ativo</Badge>
             </div>
             <Separator />
             <div className="flex items-center justify-between gap-3">
-              <span>Historico de atribuicao</span>
+              <span>Campos personalizados e status configuraveis</span>
               <Badge>Ativo</Badge>
             </div>
             <Separator />
             <div className="flex items-center justify-between gap-3">
-              <span>Regra simples de distribuicao</span>
+              <span>Dashboard operacional</span>
               <Badge>Ativo</Badge>
             </div>
           </CardContent>
@@ -163,6 +189,21 @@ export default async function AppPage() {
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
+                <ClipboardList className="size-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Abertas</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="font-mono text-3xl font-semibold">{openDemandStats?.total ?? 0}</p>
+            <p className="text-sm text-muted-foreground">Demandas ainda nao finalizadas.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
                 <Route className="size-4 text-primary" />
               </div>
               <CardTitle className="text-base">Regras</CardTitle>
@@ -171,6 +212,51 @@ export default async function AppPage() {
           <CardContent className="space-y-3">
             <p className="font-mono text-3xl font-semibold">{distributionRuleStats?.total ?? 0}</p>
             <p className="text-sm text-muted-foreground">Regras de distribuicao cadastradas.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
+                <Plug className="size-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Webhooks</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="font-mono text-3xl font-semibold">{webhookStats?.total ?? 0}</p>
+            <p className="text-sm text-muted-foreground">Webhooks ativos nesta organizacao.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
+                <KeyRound className="size-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">API keys</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="font-mono text-3xl font-semibold">{apiKeyStats?.total ?? 0}</p>
+            <p className="text-sm text-muted-foreground">Chaves ativas para integracoes.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-md border bg-muted">
+                <ShieldCheck className="size-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Falhas</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="font-mono text-3xl font-semibold">{failedDeliveryStats?.total ?? 0}</p>
+            <p className="text-sm text-muted-foreground">Entregas de webhook com falha.</p>
           </CardContent>
         </Card>
 

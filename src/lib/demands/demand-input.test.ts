@@ -60,13 +60,16 @@ describe("US-0302 - Alterar status e prioridade da demanda", () => {
     });
   });
 
-  it("Cenario: status invalido nao deve ser salvo", () => {
+  it("Cenario: status customizado configurado pode ser salvo", () => {
     const formData = createFormData({
-      status: "fora-do-fluxo",
+      status: "em_revisao",
       priority: "urgent",
     });
 
-    expect(() => parseDemandStatusUpdateFormData(formData)).toThrow();
+    expect(parseDemandStatusUpdateFormData(formData)).toEqual({
+      status: "em_revisao",
+      priority: "urgent",
+    });
   });
 });
 

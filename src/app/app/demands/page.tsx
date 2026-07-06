@@ -31,9 +31,9 @@ import { customers, demands, users } from "@/db/schema";
 import {
   demandPriorityLabels,
   demandPriorityOptions,
-  demandStatusLabels,
   demandStatusOptions,
   getDemandPriorityFilter,
+  getDemandStatusLabel,
   getDemandStatusFilter,
 } from "@/lib/demands/demand-status";
 import { requireOrganizationContext } from "@/lib/organization-context";
@@ -211,7 +211,7 @@ export default async function DemandsPage({ searchParams }: DemandsPageProps) {
                     <TableCell>{demand.assigneeName || demand.assigneeEmail || "Sem responsavel"}</TableCell>
                     <TableCell>
                       <Badge variant={demand.status === "done" ? "default" : "outline"}>
-                        {demandStatusLabels[demand.status]}
+                        {getDemandStatusLabel(demand.status)}
                       </Badge>
                     </TableCell>
                     <TableCell>{demandPriorityLabels[demand.priority]}</TableCell>

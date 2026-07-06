@@ -29,6 +29,7 @@ release estiver validada, `develop` sera promovida para `main`.
 - Planejamento editavel: `docs/planejamento-crm-inteligentte.md`
 - Planejamento em PDF: `docs/planejamento-crm-inteligentte.pdf`
 - Politica de seguranca: `docs/security.md`
+- Integracoes, API e webhooks: `docs/integracoes-api-webhooks.md`
 
 ## Stack Planejada
 

@@ -12,6 +12,7 @@ import { getDb } from "@/db/client";
 import {
   auditEvents,
   customers,
+  demandWorkflowStatuses,
   demands,
   organizationMembers,
   teams,
@@ -19,7 +20,8 @@ import {
 } from "@/db/schema";
 import {
   demandPriorityLabels,
-  demandStatusLabels,
+  demandStatusOptions,
+  getDemandStatusLabel,
 } from "@/lib/demands/demand-status";
 import { requireOrganizationContext } from "@/lib/organization-context";
 
@@ -74,7 +76,7 @@ export default async function DemandDetailPage({ params }: DemandDetailPageProps
     notFound();
   }
 
-  const [events, members, teamOptions] = await Promise.all([
+  const [events, members, teamOptions, statusOptions] = await Promise.all([
     getDb()
       .select({
         action: auditEvents.action,
@@ -104,7 +106,24 @@ export default async function DemandDetailPage({ params }: DemandDetailPageProps
       .from(teams)
       .where(eq(teams.organizationId, organization.id))
       .orderBy(asc(teams.name)),
+    getDb()
+      .select({
+        value: demandWorkflowStatuses.key,
+        label: demandWorkflowStatuses.label,
+      })
+      .from(demandWorkflowStatuses)
+      .where(
+        and(
+          eq(demandWorkflowStatuses.organizationId, organization.id),
+          eq(demandWorkflowStatuses.demandType, "client"),
+          eq(demandWorkflowStatuses.isActive, true),
+        ),
+      )
+      .orderBy(asc(demandWorkflowStatuses.position), asc(demandWorkflowStatuses.label)),
   ]);
+
+  const demandStatusSelectOptions =
+    statusOptions.length > 0 ? statusOptions : demandStatusOptions.filter((option) => option.value !== "all");
 
   return (
     <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -115,7 +134,7 @@ export default async function DemandDetailPage({ params }: DemandDetailPageProps
               <div className="space-y-2">
                 <CardTitle>{demand.title}</CardTitle>
                 <div className="flex flex-wrap gap-2">
-                  <Badge>{demandStatusLabels[demand.status]}</Badge>
+                  <Badge>{getDemandStatusLabel(demand.status)}</Badge>
                   <Badge variant="outline">{demandPriorityLabels[demand.priority]}</Badge>
                   <Badge variant="secondary">{formatDate(demand.dueAt)}</Badge>
                   {demand.assigneeId === session.user.id ? <Badge>Atribuida a voce</Badge> : null}
@@ -186,6 +205,7 @@ export default async function DemandDetailPage({ params }: DemandDetailPageProps
                 id={demand.id}
                 status={demand.status}
                 priority={demand.priority}
+                statusOptions={demandStatusSelectOptions}
               />
             </CardContent>
           </div>

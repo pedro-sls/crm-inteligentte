@@ -1,6 +1,7 @@
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -226,7 +227,7 @@ export const demands = pgTable("demands", {
   type: demandType("type").notNull(),
   title: text("title").notNull(),
   description: text("description"),
-  status: demandStatus("status").default("open").notNull(),
+  status: text("status").default("open").notNull(),
   priority: demandPriority("priority").default("medium").notNull(),
   dueAt: timestamp("due_at", { withTimezone: true }),
   customFields: jsonb("custom_fields").default({}).notNull(),
@@ -273,6 +274,87 @@ export const webhooks = pgTable("webhooks", {
 }, (table) => [
   index("webhooks_organization_idx").on(table.organizationId),
   index("webhooks_event_idx").on(table.event),
+]);
+
+export const webhookDeliveries = pgTable("webhook_deliveries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  webhookId: uuid("webhook_id").references(() => webhooks.id, { onDelete: "cascade" }),
+  event: webhookEvent("event").notNull(),
+  payload: jsonb("payload").default({}).notNull(),
+  status: text("status").default("pending").notNull(),
+  statusCode: integer("status_code"),
+  error: text("error"),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  ...timestamps,
+}, (table) => [
+  index("webhook_deliveries_organization_idx").on(table.organizationId),
+  index("webhook_deliveries_webhook_idx").on(table.webhookId),
+  index("webhook_deliveries_event_idx").on(table.event),
+]);
+
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  prefix: text("prefix").notNull(),
+  keyHash: text("key_hash").notNull(),
+  scopes: jsonb("scopes").default(["customers:write", "demands:write"]).notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  ...timestamps,
+}, (table) => [
+  index("api_keys_organization_idx").on(table.organizationId),
+  uniqueIndex("api_keys_prefix_idx").on(table.prefix),
+]);
+
+export const customFieldDefinitions = pgTable("custom_field_definitions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  entityType: text("entity_type").notNull(),
+  key: text("key").notNull(),
+  label: text("label").notNull(),
+  fieldType: text("field_type").notNull(),
+  options: jsonb("options").default([]).notNull(),
+  isRequired: boolean("is_required").default(false).notNull(),
+  position: integer("position").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  ...timestamps,
+}, (table) => [
+  index("custom_field_definitions_organization_idx").on(table.organizationId),
+  uniqueIndex("custom_field_definitions_org_entity_key_idx").on(
+    table.organizationId,
+    table.entityType,
+    table.key,
+  ),
+]);
+
+export const demandWorkflowStatuses = pgTable("demand_workflow_statuses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  demandType: demandType("demand_type").notNull(),
+  key: text("key").notNull(),
+  label: text("label").notNull(),
+  isInitial: boolean("is_initial").default(false).notNull(),
+  isFinal: boolean("is_final").default(false).notNull(),
+  position: integer("position").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  ...timestamps,
+}, (table) => [
+  index("demand_workflow_statuses_organization_idx").on(table.organizationId),
+  uniqueIndex("demand_workflow_statuses_org_type_key_idx").on(
+    table.organizationId,
+    table.demandType,
+    table.key,
+  ),
 ]);
 
 export const auditEvents = pgTable("audit_events", {

@@ -32,10 +32,10 @@ import { demands, teams, users } from "@/db/schema";
 import {
   demandPriorityLabels,
   demandPriorityOptions,
-  demandStatusLabels,
   demandStatusOptions,
   demandStatusValues,
   getDemandPriorityFilter,
+  getDemandStatusLabel,
   getDemandStatusFilter,
 } from "@/lib/demands/demand-status";
 import { requireOrganizationContext } from "@/lib/organization-context";
@@ -163,7 +163,7 @@ export default async function InternalDemandsPage({ searchParams }: InternalDema
         {boardColumns.map((column) => (
           <Card key={column.status} size="sm">
             <CardHeader>
-              <CardTitle>{demandStatusLabels[column.status]}</CardTitle>
+              <CardTitle>{getDemandStatusLabel(column.status)}</CardTitle>
               <CardAction>
                 <Badge variant="outline">{column.demands.length}</Badge>
               </CardAction>
@@ -274,7 +274,7 @@ export default async function InternalDemandsPage({ searchParams }: InternalDema
                       <TableCell>{metadata.area || "Sem area"}</TableCell>
                       <TableCell>
                         <Badge variant={demand.status === "done" ? "default" : "outline"}>
-                          {demandStatusLabels[demand.status]}
+                          {getDemandStatusLabel(demand.status)}
                         </Badge>
                       </TableCell>
                       <TableCell>{demandPriorityLabels[demand.priority]}</TableCell>

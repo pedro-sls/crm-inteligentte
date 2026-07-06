@@ -12,7 +12,7 @@ import { type DemandPriority } from "@/lib/demands/demand-status";
 
 type ApplyDistributionRulesInput = {
   organizationId: string;
-  actorId: string;
+  actorId: string | null;
   demandId: string;
   demandType: DistributionDemandType;
   priority: DemandPriority;

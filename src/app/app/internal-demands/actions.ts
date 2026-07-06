@@ -10,8 +10,10 @@ import {
   parseDemandStatusUpdateFormData,
   parseInternalDemandFormData,
 } from "@/lib/demands/demand-input";
+import { getInitialDemandStatus } from "@/lib/demand-workflows";
 import { applyDistributionRulesToDemand } from "@/lib/distribution/distribution-engine";
 import { requireOrganizationContext } from "@/lib/organization-context";
+import { dispatchWebhooks } from "@/lib/webhook-dispatcher";
 
 async function ensureTeamBelongsToOrganization(teamId: string, organizationId: string) {
   const [team] = await getDb()
@@ -33,6 +35,7 @@ export async function createInternalDemandAction(formData: FormData) {
     await ensureTeamBelongsToOrganization(values.teamId, organization.id);
   }
 
+  const status = await getInitialDemandStatus(organization.id, "internal");
   const [demand] = await getDb()
     .insert(demands)
     .values({
@@ -42,6 +45,7 @@ export async function createInternalDemandAction(formData: FormData) {
       type: "internal",
       title: values.title,
       description: values.description,
+      status,
       priority: values.priority,
       dueAt: values.dueAt,
       customFields: {
@@ -62,7 +66,7 @@ export async function createInternalDemandAction(formData: FormData) {
         type: "internal",
         teamId: values.teamId,
         priority: values.priority,
-        status: "open",
+        status,
       },
     });
 
@@ -74,6 +78,18 @@ export async function createInternalDemandAction(formData: FormData) {
       priority: values.priority,
       teamId: values.teamId,
       customerId: null,
+    });
+
+    await dispatchWebhooks({
+      organizationId: organization.id,
+      event: "demand.created",
+      entityId: demand.id,
+      data: {
+        id: demand.id,
+        type: "internal",
+        priority: values.priority,
+        status,
+      },
     });
   }
 
@@ -128,6 +144,19 @@ export async function updateInternalDemandStatusAction(formData: FormData) {
       action: statusChanged ? "demand.status_changed" : "demand.updated",
       metadata: {
         type: "internal",
+        previousStatus: existing.status,
+        nextStatus: values.status,
+        previousPriority: existing.priority,
+        nextPriority: values.priority,
+      },
+    });
+
+    await dispatchWebhooks({
+      organizationId: organization.id,
+      event: statusChanged ? "demand.status_changed" : "demand.updated",
+      entityId: id,
+      data: {
+        id,
         previousStatus: existing.status,
         nextStatus: values.status,
         previousPriority: existing.priority,

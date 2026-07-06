@@ -32,7 +32,7 @@ export const internalDemandInputSchema = z.object({
 });
 
 export const demandStatusUpdateSchema = z.object({
-  status: z.enum(demandStatusValues),
+  status: z.string().trim().min(1).max(80),
   priority: z.enum(demandPriorityValues),
 });
 

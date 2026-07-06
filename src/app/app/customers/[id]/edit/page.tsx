@@ -1,10 +1,10 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { updateCustomerAction } from "@/app/app/customers/actions";
 import { getDb } from "@/db/client";
-import { customers } from "@/db/schema";
+import { customFieldDefinitions, customers } from "@/db/schema";
 import { requireOrganizationContext } from "@/lib/organization-context";
 
 type EditCustomerPageProps = {
@@ -35,6 +35,18 @@ export default async function EditCustomerPage({ params }: EditCustomerPageProps
     notFound();
   }
 
+  const customFields = await getDb()
+    .select()
+    .from(customFieldDefinitions)
+    .where(
+      and(
+        eq(customFieldDefinitions.organizationId, organization.id),
+        eq(customFieldDefinitions.entityType, "customer"),
+        eq(customFieldDefinitions.isActive, true),
+      ),
+    )
+    .orderBy(asc(customFieldDefinitions.position), asc(customFieldDefinitions.label));
+
   return (
     <section className="mx-auto max-w-3xl">
       <Card>
@@ -56,7 +68,9 @@ export default async function EditCustomerPage({ params }: EditCustomerPageProps
               website: customer.website,
               status: customer.status,
               notes: getNotes(customer.customFields),
+              customFields: customer.customFields as Record<string, unknown>,
             }}
+            customFields={customFields}
           />
         </CardContent>
       </Card>
