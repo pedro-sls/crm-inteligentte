@@ -490,9 +490,21 @@ Cenario: Aplicar regra de distribuicao
 
 ---
 
-## Sprint 6 - Integracoes com n8n e Make
+## Sprint Final - Integracoes, Personalizacao e Dashboard
 
-Objetivo: tornar o CRM integravel por webhooks e API.
+Objetivo: concluir o escopo funcional planejado do CRM em uma unica sprint, juntando tudo que estava previsto nas sprints 6, 7 e 8. Esta sprint fecha o produto com integracoes para n8n/Make, personalizacao operacional e dashboard de indicadores.
+
+Depois desta sprint, o foco deixa de ser adicionar grandes modulos e passa a ser estabilizacao: corrigir bugs, melhorar experiencia, refinar performance, endurecer seguranca, ajustar permissoes, documentar melhor e preparar o uso real da empresa.
+
+Escopo consolidado:
+
+- Integracoes outbound por webhooks.
+- API inbound para n8n e Make.
+- Chaves de API por organizacao.
+- Campos personalizados para clientes.
+- Status personalizados para demandas.
+- Dashboard operacional com indicadores.
+- Logs, auditoria e documentacao dos fluxos integrados.
 
 ### US-0601 - Como administrador, quero cadastrar webhooks de saida
 
@@ -549,12 +561,6 @@ Cenario: Criar demanda via API
   Entao a demanda deve ser criada na organizacao correta
 ```
 
----
-
-## Sprint 7 - Campos Personalizados e Personalizacao
-
-Objetivo: permitir adaptar o CRM aos processos da empresa.
-
 ### US-0701 - Como administrador, quero criar campos personalizados para clientes
 
 Tasks:
@@ -607,12 +613,6 @@ Cenario: Usar status customizado
   Entao o CRM deve salvar o status customizado corretamente
 ```
 
----
-
-## Sprint 8 - Dashboard Operacional e Indicadores
-
-Objetivo: dar visibilidade da operacao diaria.
-
 ### US-0801 - Como gestor, quero ver indicadores principais do CRM
 
 Tasks:
@@ -636,6 +636,32 @@ Cenario: Visualizar dashboard da organizacao
   Quando acesso o dashboard
   Entao devo ver indicadores apenas da organizacao A
 ```
+
+### Criterios de pronto da Sprint Final
+
+- Webhooks podem ser cadastrados, ativados, desativados e testados.
+- Eventos relevantes disparam webhooks e geram log de entrega.
+- API inbound permite criar/atualizar clientes e demandas com chave valida.
+- Chaves de API sao escopadas por organizacao e podem ser revogadas.
+- Campos personalizados aparecem nos formularios e respeitam obrigatoriedade.
+- Status customizados podem ser configurados e usados em demandas.
+- Dashboard mostra indicadores da organizacao ativa.
+- Todas as novas rotas respeitam isolamento por organizacao.
+- Todos os fluxos criticos possuem testes unitarios ou BDDs automatizados.
+- CI/CD, build, lint, typecheck, scanner de segredos e audit passam antes do PR.
+
+### Fase seguinte - Estabilizacao e melhoria continua
+
+Ao concluir a Sprint Final, o backlog principal passa a ser:
+
+- Corrigir bugs encontrados em uso real.
+- Melhorar UX de telas com friccao.
+- Revisar mensagens de erro e estados vazios.
+- Reforcar permissoes e seguranca de API.
+- Melhorar performance de listagens e dashboards.
+- Ajustar responsividade mobile.
+- Criar documentacao operacional para equipe interna.
+- Preparar deploy, observabilidade e monitoramento.
 
 ---
 
@@ -732,10 +758,13 @@ Exemplos de automacao:
 
 ## Proximos Passos Imediatos
 
-1. Inicializar repositorio Git.
-2. Criar projeto Next.js.
-3. Configurar Tailwind CSS, shadcn/ui e layout base.
-4. Criar projeto Neon e configurar DATABASE_URL.
-5. Configurar Drizzle ORM e primeira migration.
-6. Implementar autenticacao.
-7. Comecar pela gestao de clientes.
+1. Garantir que `develop` esteja atualizado e que os bugfixes pendentes sejam integrados.
+2. Abrir branch `feature/final-sprint`.
+3. Implementar webhooks outbound e logs de entrega.
+4. Implementar chaves de API e endpoints inbound para n8n/Make.
+5. Implementar campos personalizados para clientes.
+6. Implementar status personalizados para demandas.
+7. Implementar dashboard operacional e indicadores.
+8. Rodar testes, CI/CD, build e validacoes de seguranca.
+9. Abrir PR da Sprint Final para `develop`.
+10. Apos merge, iniciar ciclo de bugs, melhorias e estabilizacao.
